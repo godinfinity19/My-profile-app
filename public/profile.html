@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .profile-container {
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 300px;
+        }
+        .profile-header img {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+        }
+        .profile-header button, .profile-info button {
+            display: block;
+            margin: 10px auto;
+        }
+        input {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="profile-container">
+        <div class="profile-header">
+            <img id="profile-pic" src="default-profile.png" alt="Profile Picture">
+            <input type="file" id="upload-profile-pic" accept="image/*" style="display: none;">
+            <button id="change-pic-btn">Change Picture</button>
+            <h1 id="profile-name">User Name</h1>
+            <button id="edit-name-btn">Edit</button>
+            <input type="text" id="edit-name-input" style="display: none;">
+            <button id="save-name-btn" style="display: none;">Save</button>
+        </div>
+        <div class="profile-info">
+            <p id="profile-email">Email: user@example.com</p>
+            <button id="edit-email-btn">Edit</button>
+            <input type="email" id="edit-email-input" style="display: none;">
+            <button id="save-email-btn" style="display: none;">Save</button>
+        </div>
+    </div>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDTVwI-EvZxuV3IBYxL-NFv2ZjLDP1-rQ0",
+            authDomain: "profilepage-c9d02.firebaseapp.com",
+            projectId: "profilepage-c9d02",
+            storageBucket: "profilepage-c9d02.appspot.com",
+            messagingSenderId: "983874444293",
+            appId: "1:983874444293:web:b4e1bdb9f9b047264b5bda"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        function displayUserData(user) {
+            document.getElementById('profile-name').textContent = user.name;
+            document.getElementById('profile-email').textContent = `Email: ${user.email}`;
+            document.getElementById('profile-pic').src = user.profilePic || 'default-profile.png';
+        }
+
+        async function fetchUserData(userId) {
+            const userDoc = await getDoc(doc(db, "users", userId));
+            if (userDoc.exists()) {
+                displayUserData(userDoc.data());
+            } else {
+                console.log("No such document!");
+            }
+        }
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                fetchUserData(user.uid);
+            } else {
+                window.location.href = "signin.html";
+            }
+        });
+
+        document.getElementById('edit-name-btn').addEventListener('click', function() {
+            document.getElementById('profile-name').style.display = 'none';
+            document.getElementById('edit-name-btn').style.display = 'none';
+            document.getElementById('edit-name-input').style.display = 'block';
+            document.getElementById('save-name-btn').style.display = 'block';
+        });
+
+        document.getElementById('save-name-btn').addEventListener('click', function() {
+            const newName = document.getElementById('edit-name-input').value;
+            document.getElementById('profile-name').textContent = newName;
+            document.getElementById('profile-name').style.display = 'block';
+            document.getElementById('edit-name-btn').style.display = 'block';
+            document.getElementById('edit-name-input').style.display = 'none';
+            document.getElementById('save-name-btn').style.display = 'none';
+        });
+
+        document.getElementById('edit-email-btn').addEventListener('click', function() {
+            document.getElementById('profile-email').style.display = 'none';
+            document.getElementById('edit-email-btn').style.display = 'none';
+            document.getElementById('edit-email-input').style.display = 'block';
+            document.getElementById('save-email-btn').style.display = 'block';
+        });
+
+        document.getElementById('save-email-btn').addEventListener('click', function() {
+            const newEmail = document.getElementById('edit-email-input').value;
+            document.getElementById('profile-email').textContent = `Email: ${newEmail}`;
+            document.getElementById('profile-email').style.display = 'block';
+            document.getElementById('edit-email-btn').style.display = 'block';
+            document.getElementById('edit-email-input').style.display = 'none';
+            document.getElementById('save-email-btn').style.display = 'none';
+        });
+
+        document.getElementById('change-pic-btn').addEventListener('click', function() {
+            document.getElementById('upload-profile-pic').click();
+        });
+
+        document.getElementById('upload-profile-pic').addEventListener('change', function() {
+            const file = this.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('profile-pic').src = e.target.result;
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+    </script>
+</body>
+</html>
